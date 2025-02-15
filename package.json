@@ -1,0 +1,46 @@
+{
+  "name": "react-native-path-aliases",
+  "version": "1.0.0",
+  "description": "Typescript package aliasing for react native apps",
+  "main": "dist/cjs/index.js",
+  "author": "Alex Figliolia",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "lint": "tsx ci/commands/Lint.ts",
+    "build": "ts-packager -e src"
+  },
+  "bin": "./dist/cjs/CLI.js",
+  "devDependencies": {
+    "@figliolia/child-process": "^1.0.4",
+    "@figliolia/ts-packager": "^1.2.1",
+    "@types/node": "^22.13.4",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^8.19.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "prettier": "^3.5.1",
+    "tsx": "^4.19.2",
+    "types-tsconfig": "^2.1.1",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "module": "dist/mjs/index.js",
+  "types": "dist/types/index.d.ts"
+}
