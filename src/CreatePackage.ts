@@ -13,16 +13,26 @@ export class CreatePackage {
 
   public execute() {
     const {
-      values: { name, tsConfigPath, babelConfigPath, packageTemplatePath },
+      values: {
+        name,
+        aliasOnly,
+        destination,
+        tsConfigPath,
+        babelConfigPath,
+        packageTemplatePath,
+      },
     } = parseArgs({
       options: {
         name: { type: "string", short: "n", multiple: false },
+        aliasOnly: { type: "boolean", short: "a", multiple: false },
+        destination: { type: "string", short: "d", multiple: false },
         tsConfigPath: { type: "string", short: "t", multiple: false },
         babelConfigPath: { type: "string", short: "b", multiple: false },
         packageTemplatePath: { type: "string", short: "p", multiple: false },
       },
     });
     this.options = {
+      aliasOnly,
       tsConfigPath: this.toAbsolutePath(
         tsConfigPath,
         join(this.CWD, "tsconfig.json"),
@@ -31,6 +41,7 @@ export class CreatePackage {
         babelConfigPath,
         join(this.CWD, "babel.config.js"),
       )!,
+      destination: this.toAbsolutePath(destination, undefined),
       packageTemplatePath: this.toAbsolutePath(packageTemplatePath, undefined),
     };
     if (!name || name.trim().length < 3) {
@@ -42,7 +53,9 @@ export class CreatePackage {
 
   private async aliasPaths(pkgName: string) {
     const baseURL = (await this.toTSAlias(pkgName)) ?? "./";
-    this.createPackageFolder(pkgName, baseURL);
+    if (!this.options.aliasOnly) {
+      this.createPackageFolder(pkgName, baseURL);
+    }
     await this.toBabelAlias(pkgName, baseURL);
     if (this.install) {
       Logger.info(
@@ -72,10 +85,13 @@ export class CreatePackage {
     const TSConfig: TSConfigJSON = (await import(this.options.tsConfigPath))
       .default;
     const copy = { ...TSConfig };
+    const destination = this.options.destination
+      ? `./${this.options.destination.replace(this.CWD, "")}`
+      : "./";
     const paths = this.addKeyAndSort(
       { ...TSConfig?.compilerOptions?.paths },
       pkgName,
-      [`./${pkgName}/index.ts`],
+      [`${destination}${pkgName}/index.ts`],
     );
     if (!copy.compilerOptions) {
       copy.compilerOptions = {};
@@ -112,10 +128,13 @@ export class CreatePackage {
       pluginIndex = copy.plugins.length - 1;
       plugin = copy.plugins[pluginIndex][1] as Record<string, any>;
     }
+    const destination = this.options.destination
+      ? `./${this.options.destination.replace(this.CWD, "")}`
+      : baseURL;
     const alias = this.addKeyAndSort(
       { ...plugin?.alias },
       pkgName,
-      `${baseURL}/${pkgName}`,
+      `${destination}/${pkgName}`,
     );
     copy.plugins[pluginIndex] = ["module-resolver", { ...plugin, alias }];
     writeFileSync(this.options.babelConfigPath, this.toBabelConfig(copy));

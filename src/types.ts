@@ -21,12 +21,16 @@ export interface BabelConfig {
 }
 
 export interface CPOptions {
+  aliasOnly?: boolean;
+  destination?: string;
   tsConfigPath?: string;
   babelConfigPath?: string;
   packageTemplatePath?: string;
 }
 
 export interface CPPaths {
+  aliasOnly?: boolean;
+  destination?: string;
   tsConfigPath: string;
   babelConfigPath: string;
   packageTemplatePath?: string;
