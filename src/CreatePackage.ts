@@ -1,14 +1,8 @@
 import { parseArgs } from "node:util";
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
-import { resolve } from "node:path";
-import { ChildProcess } from "@figliolia/child-process";
+import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { TSConfigJSON } from "types-tsconfig";
+import { ChildProcess } from "@figliolia/child-process";
 import { Logger } from "./Logger";
 import type { BabelConfig, CPPaths } from "./types";
 
@@ -29,8 +23,14 @@ export class CreatePackage {
       },
     });
     this.options = {
-      tsConfigPath: this.toAbsolutePath(tsConfigPath, this.CWD)!,
-      babelConfigPath: this.toAbsolutePath(babelConfigPath, this.CWD)!,
+      tsConfigPath: this.toAbsolutePath(
+        tsConfigPath,
+        join(this.CWD, "tsconfig.json"),
+      )!,
+      babelConfigPath: this.toAbsolutePath(
+        babelConfigPath,
+        join(this.CWD, "babel.config.js"),
+      )!,
       packageTemplatePath: this.toAbsolutePath(packageTemplatePath, undefined),
     };
     if (!name || name.trim().length < 3) {
@@ -41,7 +41,7 @@ export class CreatePackage {
   }
 
   private async aliasPaths(pkgName: string) {
-    const baseURL = this.toTSAlias(pkgName) ?? "./";
+    const baseURL = (await this.toTSAlias(pkgName)) ?? "./";
     this.createPackageFolder(pkgName, baseURL);
     await this.toBabelAlias(pkgName, baseURL);
     if (this.install) {
@@ -66,27 +66,22 @@ export class CreatePackage {
     }
   }
 
-  private toTSAlias(pkgName: string) {
+  private async toTSAlias(pkgName: string) {
     Logger.info("Creating TS Config Alias");
-    const file = this.readFile(this.options.tsConfigPath, "TS Config");
-    const TSConfig = JSON.parse(file) as TSConfigJSON;
+    this.readFile(this.options.tsConfigPath, "TS Config");
+    const TSConfig: TSConfigJSON = (await import(this.options.tsConfigPath))
+      .default;
     const copy = { ...TSConfig };
     const paths = this.addKeyAndSort(
       { ...TSConfig?.compilerOptions?.paths },
       pkgName,
-      [`${pkgName}/index.ts`],
+      [`./${pkgName}/index.ts`],
     );
-    paths[pkgName] = [`${pkgName}/index.ts`];
-    const keys = Object.keys(paths);
-    keys.sort();
     if (!copy.compilerOptions) {
       copy.compilerOptions = {};
     }
     copy.compilerOptions.paths = paths;
-    writeFileSync(
-      resolve(__dirname, "../tsconfig.json"),
-      JSON.stringify(copy, null, 2),
-    );
+    writeFileSync(this.options.tsConfigPath, JSON.stringify(copy, null, 2));
     return copy.compilerOptions?.baseUrl;
   }
 
@@ -107,39 +102,48 @@ export class CreatePackage {
         break;
       }
     }
-    let plugin = copy.plugins[pluginIndex][1];
+    let plugin = copy?.plugins?.[pluginIndex]?.[1];
     if (
       pluginIndex === -1 ||
       typeof plugin === "string" ||
       typeof plugin === "undefined"
     ) {
-      this.addModuleResolverPlugin(copy, baseURL);
+      this.addModuleResolverPlugin(copy);
+      pluginIndex = copy.plugins.length - 1;
       plugin = copy.plugins[pluginIndex][1] as Record<string, any>;
     }
     const alias = this.addKeyAndSort(
       { ...plugin?.alias },
       pkgName,
-      `./src/${pkgName}`,
+      `${baseURL}/${pkgName}`,
     );
     copy.plugins[pluginIndex] = ["module-resolver", { ...plugin, alias }];
-    writeFileSync(
-      this.options.babelConfigPath,
-      `module.exports = ${JSON.stringify(copy, null, 2)}`,
-    );
+    writeFileSync(this.options.babelConfigPath, this.toBabelConfig(copy));
     await new ChildProcess(`yarn prettier --write ./babel.config.js`).handler;
   }
 
-  private addModuleResolverPlugin(BabelConfig: BabelConfig, baseURL: string) {
+  private addModuleResolverPlugin(BabelConfig: BabelConfig) {
     Logger.info("Adding module resolver plugin to your babel config");
-    BabelConfig.plugins?.push([
+    if (!BabelConfig.plugins) {
+      BabelConfig.plugins = [];
+    }
+    BabelConfig.plugins.push([
       "module-resolver",
       {
-        root: [baseURL],
+        root: ["."],
         extensions: [".js", ".ts", ".tsx", ".jsx", ".json"],
         alias: {},
       },
     ]);
     this.install = true;
+  }
+
+  private toBabelConfig(config: BabelConfig) {
+    const json = JSON.stringify(config, null, 2);
+    if (this.options.babelConfigPath.endsWith(".json")) {
+      return json;
+    }
+    return `module.exports = ${json}`;
   }
 
   private addKeyAndSort<V>(aliases: Record<string, V>, key: string, value: V) {
@@ -158,7 +162,6 @@ export class CreatePackage {
       Logger.underline(path);
       process.exit(0);
     }
-    return readFileSync(path).toString();
   }
 
   private toAbsolutePath(
