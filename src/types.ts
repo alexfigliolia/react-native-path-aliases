@@ -35,3 +35,12 @@ export interface CPPaths {
   babelConfigPath: string;
   packageTemplatePath?: string;
 }
+
+export interface CLIOptions {
+  name?: string | undefined;
+  aliasOnly?: boolean | undefined;
+  destination?: string | undefined;
+  tsConfigPath?: string | undefined;
+  babelConfigPath?: string | undefined;
+  packageTemplatePath?: string | undefined;
+}
