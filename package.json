@@ -7,13 +7,20 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "test": "tsx src/CLI.ts",
     "lint": "tsx ci/commands/Lint.ts",
     "build": "ts-packager -e src"
   },
   "bin": "./dist/cjs/CLI.js",
+  "dependencies": {
+    "chalk": "4",
+    "jscodeshift": "^17.1.2",
+    "prettier": "^3.5.1"
+  },
   "devDependencies": {
     "@figliolia/child-process": "^1.0.4",
     "@figliolia/ts-packager": "^1.2.1",
+    "@types/jscodeshift": "^0.12.0",
     "@types/node": "^22.13.4",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
@@ -26,13 +33,9 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "prettier": "^3.5.1",
     "tsx": "^4.19.2",
     "types-tsconfig": "^2.1.1",
     "typescript": "^5.7.3"
-  },
-  "dependencies": {
-    "chalk": "4"
   },
   "exports": {
     ".": {

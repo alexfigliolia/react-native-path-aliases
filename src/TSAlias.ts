@@ -11,14 +11,14 @@ export class TSAlias extends Alias {
     const paths = this.addKeyAndSort(
       { ...TSConfig?.compilerOptions?.paths },
       this.options.packageName,
-      [`${this.destination}${this.options.packageName}/index.ts`],
+      [`${this.destination}${this.options.packageName}/*`],
     );
     if (!copy.compilerOptions) {
       copy.compilerOptions = {};
     }
     copy.compilerOptions.paths = paths;
     this.writeFile(copy);
-    return copy.compilerOptions?.baseUrl;
+    return copy.compilerOptions?.baseUrl ?? "./";
   }
 
   protected writeFile(TSConfig: TSConfigJSON) {
@@ -34,7 +34,7 @@ export class TSAlias extends Alias {
   }
 
   protected async importFile() {
-    this.readFile(this.options.get("tsConfigPath"), "TS Config");
+    this.validatePath(this.options.get("tsConfigPath"), "TS Config");
     return (await import(this.options.get("tsConfigPath")))
       .default as TSConfigJSON;
   }

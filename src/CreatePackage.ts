@@ -16,22 +16,24 @@ export class CreatePackage {
       this.createPackageFolder(this.options.packageName, baseURL);
     }
     const babelInterface = new BabelAlias(baseURL, this.options);
-    if (await babelInterface.run()) {
+    const install = await babelInterface.run();
+    Logger.info("Complete!");
+    if (install) {
       Logger.info(
-        "Please add the following package to your project's devDependencies",
+        "Please add the following package to your project's devDependencies:",
+        Logger.blue.bold("babel-plugin-module-resolver"),
       );
-      Logger.underline("babel-plugin-module-resolver");
     }
   }
 
   private createPackageFolder(pkgName: string, baseURL: string) {
-    Logger.info("Creating package directory");
     const pkgFolder = resolve(this.CWD, baseURL, pkgName);
     if (existsSync(pkgFolder)) {
-      Logger.info(
-        `A package directory with the name "${pkgName}" already exists. Skipping task`,
+      return Logger.info(
+        `A package directory with the name "${pkgName}" already exists. Skipping package creation task`,
       );
     }
+    Logger.info("Creating package directory");
     mkdirSync(pkgFolder, { recursive: true });
     const templatePath = this.options.get("packageTemplatePath");
     if (templatePath) {

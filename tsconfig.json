@@ -16,7 +16,12 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "components": [
+        "./components/index.ts"
+      ]
+    }
   },
   "include": [
     "src",

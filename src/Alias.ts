@@ -11,7 +11,7 @@ export abstract class Alias {
 
   public abstract run(): Promise<any>;
 
-  protected abstract importFile(): Promise<any>;
+  protected abstract importFile(): any;
 
   protected abstract get destination(): string;
 
@@ -31,7 +31,7 @@ export abstract class Alias {
     }, {});
   }
 
-  protected readFile(path: string, name: string) {
+  protected validatePath(path: string, name: string) {
     if (!existsSync(path)) {
       Logger.error(`Your ${name} was not found. Here's where I checked:`);
       Logger.underline(path);
