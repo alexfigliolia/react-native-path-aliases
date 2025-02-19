@@ -53,10 +53,14 @@ export class BabelAlias extends Alias {
     if (target) {
       return `./${target.replace(this.CWD, "")}`;
     }
-    if (this.baseURL.startsWith("./")) {
-      return this.baseURL;
+    let baseURL = this.baseURL;
+    if (baseURL.endsWith("/")) {
+      baseURL = baseURL.slice(0, -1);
     }
-    return `./${this.baseURL}`;
+    if (baseURL.startsWith("./")) {
+      return baseURL;
+    }
+    return `./${baseURL}`;
   }
 
   protected importFile() {

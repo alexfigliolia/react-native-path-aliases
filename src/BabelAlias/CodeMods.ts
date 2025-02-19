@@ -1,6 +1,5 @@
 import type { ObjectExpression } from "jscodeshift";
 import codeShift from "jscodeshift";
-import { join } from "path";
 import type { ASTList, TruthyASTListItem } from "./types";
 
 export class CodeMods {
@@ -31,7 +30,7 @@ export class CodeMods {
           const update = codeShift.property(
             "init",
             codeShift.identifier(packageName),
-            codeShift.stringLiteral(join(destination, packageName)),
+            codeShift.stringLiteral(`${destination}/${packageName}`),
           );
           if (existingPropertyIndex !== -1) {
             properties[existingPropertyIndex] = update;
