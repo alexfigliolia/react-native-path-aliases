@@ -11,7 +11,7 @@ export class TSAlias extends Alias {
     const paths = this.addKeyAndSort(
       { ...TSConfig?.compilerOptions?.paths },
       this.options.packageName,
-      [`${this.destination}${this.options.packageName}/*`],
+      [`${this.destination}${this.options.packageName}/index.ts`],
     );
     if (!copy.compilerOptions) {
       copy.compilerOptions = {};
